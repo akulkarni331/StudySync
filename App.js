@@ -1,65 +1,77 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, TextInput, Platform, TouchableOpacity, Keyboard } from 'react-native';
-
-
-const Task = (props) => {
-   return (
-       <View style={styles.item}>
-           <View style={styles.itemLeft}>
-               <View style={styles.square}></View>
-               <Text style={styles.itemText}>{props.text}</Text>
-           </View>
-           <View style={styles.circular}></View>
-       </View>
-   );
-}
-
+import { View, Text, StyleSheet, KeyboardAvoidingView, TextInput, Platform, TouchableOpacity, Keyboard, Alert } from 'react-native';
 
 const App = () => {
-   const [task, setTask] = useState('');
-   const [taskItems, setTaskItems] = useState([]);
+   const [course, setCourse] = useState('');
+   const [courseItems, setCourseItems] = useState([]);
 
-
-   const handleAddTask = () => {
+   const handleAddCourse = () => {
        Keyboard.dismiss();
-       setTaskItems([...taskItems, task]);
-       setTask(null);
+       setCourseItems([...courseItems, course]);
+       setCourse(''); // Change null to empty string to clear the input field
    }
 
+   const deleteCourse = (index) => {
+    Alert.alert(
+        'Confirm',
+        'Are you sure you want to delete this course?',
+        [
+            {
+                text: 'No',
+                style: 'cancel',
+            },
+            {
+                text: 'Yes',
+                onPress: () => {
+                    let itemsCopy = [...courseItems];
+                    itemsCopy.splice(index, 1);
+                    setCourseItems(itemsCopy);
+                },
+            },
+        ],
+        { cancelable: false }
+    );
+}
 
-   const completeTask = (index) => {
-       let itemsCopy = [...taskItems];
-       itemsCopy.splice(index, 1);
-       setTaskItems(itemsCopy);
+   const Course = (props) => {
+       return (
+           <View style={styles.item}>
+               <View style={styles.itemLeft}>
+                   <View style={styles.square}></View>
+                   <Text style={styles.itemText}>{props.text}</Text>
+               </View>
+               <TouchableOpacity onPress={() => deleteCourse(props.index)}>
+                   <View style={styles.deleteButton}>
+                       <Text style={styles.deleteButtonText}>Delete</Text>
+                   </View>
+               </TouchableOpacity>
+           </View>
+       );
    }
-
 
    return (
        <View style={styles.container}>
            <Text style={styles.title}>My Subjects List</Text>
            {
-               taskItems.map((item, index) => {
+               courseItems.map((item, index) => {
                    return (
-                       <TouchableOpacity key={index} onPress={() => completeTask(index)}>
-                           <Task text={item} />
-                       </TouchableOpacity>
+                       <Course key={index} text={item} index={index} />
                    );
                })
            }
 
-
            <KeyboardAvoidingView
                behavior={Platform.OS === "ios" ? "padding" : "height"}
-               style={styles.writeTaskWrapper}
+               style={styles.writeCourseWrapper}
            >
                <TextInput
                    style={styles.input}
                    placeholder={"Add a class..."}
-                   value={task}
-                   onChangeText={text => setTask(text)}
+                   value={course}
+                   onChangeText={text => setCourse(text)}
                />
               
-               <TouchableOpacity onPress={() => handleAddTask()}>
+               <TouchableOpacity onPress={() => handleAddCourse()}>
                    <View style={styles.addWrapper}>
                        <Text style={styles.addText}>+</Text>
                    </View>
@@ -68,7 +80,6 @@ const App = () => {
        </View>
    );
 }
-
 
 const styles = StyleSheet.create({
    container: {
@@ -91,7 +102,7 @@ const styles = StyleSheet.create({
        flexDirection: 'row',
        alignItems: 'center',
        justifyContent: 'space-between',
-       marginBottom: 20,
+       marginBottom: 20
    },
    itemLeft: {
        flexDirection: 'row',
@@ -104,20 +115,22 @@ const styles = StyleSheet.create({
        backgroundColor: '#55BCF6',
        opacity: 0.4,
        borderRadius: 5,
-       marginRight: 15,
+       marginRight: 15
    },
    itemText: {
-       maxWidth: '80%',
-      
+       maxWidth: '80%'
    },
-   circular: {
-       width: 12,
-       height: 12,
-       borderColor: '#55BCF6',
-       borderWidth: 2,
+   deleteButton: {
+       backgroundColor: '#FF6347',
+       paddingVertical: 5,
+       paddingHorizontal: 10,
        borderRadius: 5,
    },
-   writeTaskWrapper: {
+   deleteButtonText: {
+       color: '#FFF',
+       fontWeight: 'bold'
+   },
+   writeCourseWrapper: {
        position: 'absolute',
        bottom: 60,
        width: '100%',
@@ -152,6 +165,5 @@ const styles = StyleSheet.create({
        marginTop: -5,
    },
 });
-
 
 export default App;
