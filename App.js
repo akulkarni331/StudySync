@@ -1,84 +1,122 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, TextInput, Platform, TouchableOpacity, Keyboard, Alert } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, TextInput, Platform, TouchableOpacity, Keyboard, Alert, Button } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
-const App = () => {
-   const [course, setCourse] = useState('');
-   const [courseItems, setCourseItems] = useState([]);
+const Stack = createStackNavigator();
 
-   const handleAddCourse = () => {
-       Keyboard.dismiss();
-       setCourseItems([...courseItems, course]);
-       setCourse(''); // Change null to empty string to clear the input field
-   }
+const CourseListScreen = ({ navigation }) => {
+    const [course, setCourse] = useState('');
+    const [courseItems, setCourseItems] = useState([]);
 
-   const deleteCourse = (index) => {
-    Alert.alert(
-        'Confirm',
-        'Are you sure you want to delete this course?',
-        [
-            {
-                text: 'No',
-                style: 'cancel',
-            },
-            {
-                text: 'Yes',
-                onPress: () => {
-                    let itemsCopy = [...courseItems];
-                    itemsCopy.splice(index, 1);
-                    setCourseItems(itemsCopy);
+    const handleAddCourse = () => {
+        Keyboard.dismiss();
+        setCourseItems([...courseItems, course]);
+        setCourse('');
+    }
+
+    const deleteCourse = (index) => {
+        Alert.alert(
+            'Confirm',
+            'Are you sure you want to delete this course?',
+            [
+                {
+                    text: 'No',
+                    style: 'cancel',
                 },
-            },
-        ],
-        { cancelable: false }
+                {
+                    text: 'Yes',
+                    onPress: () => {
+                        let itemsCopy = [...courseItems];
+                        itemsCopy.splice(index, 1);
+                        setCourseItems(itemsCopy);
+                    },
+                },
+            ],
+            { cancelable: false }
+        );
+    }
+
+    const navigateToToDo = (courseName) => {
+        navigation.navigate('ToDoList', { courseName });
+    }
+
+    const Course = (props) => {
+        return (
+            <View style={styles.item}>
+                <View style={styles.itemLeft}>
+                    <View style={styles.square}></View>
+                    <Text style={styles.itemText}>{props.text}</Text>
+                </View>
+                <TouchableOpacity onPress={() => navigateToToDo(props.text)} style={styles.toDoButton}>
+                    <Text style={styles.toDoButtonText}>To-Do</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => deleteCourse(props.index)} style={styles.deleteButton}>
+                    <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>My Courses</Text>
+            {
+                courseItems.map((item, index) => (
+                    <Course key={index} text={item} index={index} />
+                ))
+            }
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={styles.writeCourseWrapper}
+            >
+                <TextInput
+                    style={styles.input}
+                    placeholder={"Add a class..."}
+                    value={course}
+                    onChangeText={text => setCourse(text)}
+                />
+                <TouchableOpacity onPress={() => handleAddCourse()}>
+                    <View style={styles.addWrapper}>
+                        <Text style={styles.addText}>+</Text>
+                    </View>
+                </TouchableOpacity>
+            </KeyboardAvoidingView>
+        </View>
     );
 }
 
-   const Course = (props) => {
-       return (
-           <View style={styles.item}>
-               <View style={styles.itemLeft}>
-                   <View style={styles.square}></View>
-                   <Text style={styles.itemText}>{props.text}</Text>
-               </View>
-               <TouchableOpacity onPress={() => deleteCourse(props.index)}>
-                   <View style={styles.deleteButton}>
-                       <Text style={styles.deleteButtonText}>Delete</Text>
-                   </View>
-               </TouchableOpacity>
-           </View>
-       );
-   }
+const ToDoListScreen = ({ navigation, route }) => {
+    const { courseName } = route.params;
 
-   return (
-       <View style={styles.container}>
-           <Text style={styles.title}>My Subjects List</Text>
-           {
-               courseItems.map((item, index) => {
-                   return (
-                       <Course key={index} text={item} index={index} />
-                   );
-               })
-           }
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>{courseName} To-Do List</Text>
+            <View style={styles.buttonContainer}>
+                <Button title="Home" onPress={() => navigation.goBack()} />
+            </View>
+            {/* Add your To-Do List UI here */}
+        </View>
+    );
+}
 
-           <KeyboardAvoidingView
-               behavior={Platform.OS === "ios" ? "padding" : "height"}
-               style={styles.writeCourseWrapper}
-           >
-               <TextInput
-                   style={styles.input}
-                   placeholder={"Add a class..."}
-                   value={course}
-                   onChangeText={text => setCourse(text)}
-               />
-              
-               <TouchableOpacity onPress={() => handleAddCourse()}>
-                   <View style={styles.addWrapper}>
-                       <Text style={styles.addText}>+</Text>
-                   </View>
-               </TouchableOpacity>
-           </KeyboardAvoidingView>
-       </View>
-   );
+const App = () => {
+    return (
+        <NavigationContainer>
+            <Stack.Navigator>
+                <Stack.Screen
+                    name="My Courses"
+                    component={CourseListScreen}
+                    options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                    name="ToDoList"
+                    component={ToDoListScreen}
+                    options={{ headerShown: false }}
+                />
+            </Stack.Navigator>
+        </NavigationContainer>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -118,7 +156,8 @@ const styles = StyleSheet.create({
        marginRight: 15
    },
    itemText: {
-       maxWidth: '80%'
+       maxWidth: '80%',
+       fontSize: 18,
    },
    deleteButton: {
        backgroundColor: '#FF6347',
@@ -127,6 +166,16 @@ const styles = StyleSheet.create({
        borderRadius: 5,
    },
    deleteButtonText: {
+       color: '#FFF',
+       fontWeight: 'bold'
+   },
+   toDoButton: {
+       backgroundColor: '#4CAF50',
+       paddingVertical: 5,
+       paddingHorizontal: 10,
+       borderRadius: 5,
+   },
+   toDoButtonText: {
        color: '#FFF',
        fontWeight: 'bold'
    },
@@ -164,6 +213,11 @@ const styles = StyleSheet.create({
        color: '#55BCF6',
        marginTop: -5,
    },
+   buttonContainer: {
+        alignItems: 'flex-start',
+        marginLeft: -3,
+        marginTop:-50,
+    },
 });
 
 export default App;
