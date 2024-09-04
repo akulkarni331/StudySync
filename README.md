@@ -8,8 +8,8 @@ App Ideators:
 - Mahadev Annabhimoju, Frisco Lone Star HS
 
 App Developers:
-- <name>, <college>
-- <name>, <college>
+- <name> <college>
+- <name> <college>
 
 Description of App:
 - <text>
